@@ -66,10 +66,6 @@ resource "aws_iam_role" "bedrock_billing_lambda_role" {
       }
     ]
   })
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 # IAM Policy for Lambda - CloudWatch Logs
