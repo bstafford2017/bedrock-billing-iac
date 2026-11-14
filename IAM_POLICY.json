@@ -14,7 +14,8 @@
         "sns:Unsubscribe",
         "sns:ListSubscriptionsByTopic",
         "sns:TagResource",
-        "sns:UntagResource"
+        "sns:UntagResource",
+        "sns:ListTagsForResource"
       ],
       "Resource": "arn:aws:sns:us-east-1:*:bedrock-billing*"
     },
@@ -32,7 +33,8 @@
         "lambda:RemovePermission",
         "lambda:GetPolicy",
         "lambda:TagResource",
-        "lambda:UntagResource"
+        "lambda:UntagResource",
+        "lambda:ListTagsForResource"
       ],
       "Resource": "arn:aws:lambda:us-east-1:*:function:bedrock-billing*"
     },
@@ -52,7 +54,8 @@
         "iam:ListRolePolicies",
         "iam:PassRole",
         "iam:TagRole",
-        "iam:UntagRole"
+        "iam:UntagRole",
+        "iam:ListTagsForRole"
       ],
       "Resource": [
         "arn:aws:iam::*:role/bedrock-billing*"
@@ -70,7 +73,8 @@
         "events:ListTargetsByRule",
         "events:ListRules",
         "events:TagResource",
-        "events:UntagResource"
+        "events:UntagResource",
+        "events:ListTagsForResource"
       ],
       "Resource": "arn:aws:events:us-east-1:*:rule/bedrock-billing*"
     },

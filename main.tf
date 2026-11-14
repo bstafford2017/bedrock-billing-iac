@@ -36,6 +36,10 @@ resource "aws_sns_topic" "bedrock_billing_alerts" {
   tags = {
     Name = "Bedrock Billing Alerts Topic"
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # SNS Topic subscription - Email
@@ -49,8 +53,7 @@ resource "aws_sns_topic_subscription" "bedrock_billing_email" {
 
 # IAM Role for Lambda
 resource "aws_iam_role" "bedrock_billing_lambda_role" {
-  name = "${var.project_name}-lambda-role"
-
+  name               = "${var.project_name}-lambda-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -63,6 +66,10 @@ resource "aws_iam_role" "bedrock_billing_lambda_role" {
       }
     ]
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # IAM Policy for Lambda - CloudWatch Logs
@@ -126,6 +133,10 @@ resource "aws_cloudwatch_event_rule" "bedrock_billing_daily" {
 
   tags = {
     Name = "Bedrock Billing Daily Trigger"
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
