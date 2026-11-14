@@ -111,7 +111,6 @@ resource "aws_lambda_function" "bedrock_billing_lambda" {
   environment {
     variables = {
       SNS_TOPIC_ARN = aws_sns_topic.bedrock_billing_alerts.arn
-      AWS_REGION    = var.aws_region
     }
   }
 
