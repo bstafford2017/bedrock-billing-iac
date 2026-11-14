@@ -1,0 +1,117 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SNSPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:ListTopics",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:ListSubscriptionsByTopic",
+        "sns:TagResource",
+        "sns:UntagResource"
+      ],
+      "Resource": "arn:aws:sns:us-east-1:*:bedrock-billing*"
+    },
+    {
+      "Sid": "LambdaPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:DeleteFunction",
+        "lambda:GetFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:ListFunctions",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy",
+        "lambda:TagResource",
+        "lambda:UntagResource"
+      ],
+      "Resource": "arn:aws:lambda:us-east-1:*:function:bedrock-billing*"
+    },
+    {
+      "Sid": "IAMPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:PassRole",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/bedrock-billing*"
+      ]
+    },
+    {
+      "Sid": "EventBridgePermissions",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutRule",
+        "events:DeleteRule",
+        "events:DescribeRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "events:ListTargetsByRule",
+        "events:ListRules",
+        "events:TagResource",
+        "events:UntagResource"
+      ],
+      "Resource": "arn:aws:events:us-east-1:*:rule/bedrock-billing*"
+    },
+    {
+      "Sid": "CloudWatchLogsPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:PutRetentionPolicy",
+        "logs:ListTagsLogGroup",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:*:log-group:/aws/lambda/bedrock-billing*"
+    },
+    {
+      "Sid": "S3TerraformState",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::YOUR_TERRAFORM_STATE_BUCKET",
+        "arn:aws:s3:::YOUR_TERRAFORM_STATE_BUCKET/*"
+      ]
+    },
+    {
+      "Sid": "DynamoDBTerraformLock",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:*:table/terraform-locks"
+    }
+  ]
+}
