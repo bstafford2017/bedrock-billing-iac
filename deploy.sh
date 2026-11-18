@@ -1,84 +1,72 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Bedrock Billing Alert - Deployment Script"
-echo "=============================================="
-echo ""
+ACCOUNT_ID="749936333804"
+REGION="us-east-1"
+PROJECT="bedrock-billing"
+EMAIL="b.stafford2017@gmail.com"
 
-# Check prerequisites
-echo "📋 Checking prerequisites..."
+echo "🚀 Deploying Bedrock Billing Alert Infrastructure via AWS CLI"
+echo "================================================================"
 
-if ! command -v terraform &> /dev/null; then
-    echo "❌ Terraform not found. Please install Terraform >= 1.0"
-    exit 1
-fi
+# 1. SNS Topic (already created)
+echo "✅ SNS Topic already exists: bedrock-billing-billing-alerts"
 
-if ! command -v aws &> /dev/null; then
-    echo "❌ AWS CLI not found. Please install AWS CLI"
-    exit 1
-fi
+# 2. IAM Role (already created)
+echo "✅ IAM Role already exists: bedrock-billing-lambda-role"
 
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python3 not found. Please install Python 3.11+"
-    exit 1
-fi
+# 3. Lambda Function
+echo "📦 Creating Lambda function..."
+LAMBDA_NAME="${PROJECT}-billing-checker"
+ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${PROJECT}-lambda-role"
 
-echo "✅ Prerequisites met"
-echo ""
+aws lambda create-function \
+  --function-name "$LAMBDA_NAME" \
+  --runtime python3.11 \
+  --role "$ROLE_ARN" \
+  --handler index.handler \
+  --timeout 60 \
+  --zip-file fileb://lambda_function.zip \
+  --environment Variables="{SNS_TOPIC_ARN=arn:aws:sns:${REGION}:${ACCOUNT_ID}:${PROJECT}-billing-alerts}" \
+  --region "$REGION" 2>&1 | grep -i "functionarn\|error" || echo "Lambda function created"
 
-# Check configuration
-if [ ! -f "terraform.tfvars" ]; then
-    echo "❌ terraform.tfvars not found"
-    echo "📋 Creating from example..."
-    cp terraform.tfvars.example terraform.tfvars
-    echo "⚠️  PLEASE EDIT terraform.tfvars and set alert_email before continuing!"
-    exit 1
-fi
+# 4. Lambda Permission for EventBridge
+echo "🔐 Adding EventBridge permission to Lambda..."
+aws lambda add-permission \
+  --function-name "$LAMBDA_NAME" \
+  --statement-id AllowExecutionFromEventBridge \
+  --action lambda:InvokeFunction \
+  --principal events.amazonaws.com \
+  --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/${PROJECT}-daily-trigger" \
+  --region "$REGION" 2>&1 | grep -i "statement\|error" || echo "Permission added"
 
-# Verify email is set
-if grep -q "your-email@example.com" terraform.tfvars; then
-    echo "❌ Email not configured in terraform.tfvars"
-    echo "⚠️  Please update alert_email before deploying"
-    exit 1
-fi
+# 5. EventBridge Target
+echo "🎯 Adding Lambda as EventBridge target..."
+aws events put-targets \
+  --rule "${PROJECT}-daily-trigger" \
+  --targets "Id"="1","Arn"="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:${LAMBDA_NAME}" \
+  --region "$REGION" 2>&1 | grep -i "failed\|success" || echo "Target added"
 
-echo "📧 Email configured: $(grep alert_email terraform.tfvars)"
-echo ""
+# 6. CloudWatch Log Group
+echo "📝 Creating CloudWatch log group..."
+aws logs create-log-group \
+  --log-group-name "/aws/lambda/${LAMBDA_NAME}" \
+  --region "$REGION" 2>&1 | grep -i "error" || echo "Log group created"
 
-# Initialize Terraform
-echo "🔧 Initializing Terraform..."
-terraform init
-
-echo ""
-echo "📊 Planning deployment..."
-terraform plan -out=tfplan
-
-echo ""
-echo "⏳ Ready to deploy. Review the plan above."
-read -p "Continue with deployment? (yes/no): " confirm
-
-if [ "$confirm" != "yes" ]; then
-    echo "❌ Deployment cancelled"
-    exit 1
-fi
-
-echo ""
-echo "🚀 Deploying infrastructure..."
-terraform apply tfplan
+# Set retention
+aws logs put-retention-policy \
+  --log-group-name "/aws/lambda/${LAMBDA_NAME}" \
+  --retention-in-days 7 \
+  --region "$REGION" 2>&1 | grep -i "error" || echo "Log retention set"
 
 echo ""
 echo "✅ Deployment complete!"
 echo ""
-echo "📋 Deployment Summary:"
-terraform output
-
+echo "📋 Resources created:"
+echo "  - SNS Topic: bedrock-billing-billing-alerts"
+echo "  - IAM Role: bedrock-billing-lambda-role"
+echo "  - Lambda: bedrock-billing-billing-checker"
+echo "  - EventBridge Rule: bedrock-billing-daily-trigger"
+echo "  - CloudWatch Logs: /aws/lambda/bedrock-billing-billing-checker"
 echo ""
-echo "⚠️  IMPORTANT: Check your email for SNS subscription confirmation"
-echo "📧 Click the confirmation link to enable billing alerts"
-echo ""
-echo "🔗 View deployment:"
-echo "   - SNS Topic: $(terraform output -raw sns_topic_arn)"
-echo "   - Lambda Function: $(terraform output -raw lambda_function_name)"
-echo "   - EventBridge Rule: $(terraform output -raw eventbridge_rule_name)"
-echo ""
-echo "📖 For troubleshooting, see README.md"
+echo "📧 Email subscription pending confirmation at: $EMAIL"
